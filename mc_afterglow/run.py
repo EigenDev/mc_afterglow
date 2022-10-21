@@ -106,21 +106,21 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
     with afterglow_fit:
         mc_data = pm.sample(chains = args.chains)
     
-    az.plot_trace(
-        mc_data, 
-        var_names = [
-            r'$E_{\rm iso}$', 
-            r'$\theta_{\rm obs}$', 
-            r'$\theta_0$',
-            r'$n_0$', 
-            r'$\xi_N$', 
-            r'$\epsilon_e$', 
-            r'$\epsilon_B$', 
-            r'$p$'], 
-        figsize=(7,4)
-    )
+    # az.plot_trace(
+    #     mc_data, 
+    #     var_names = [
+    #         r'$E_{\rm iso}$', 
+    #         r'$\theta_{\rm obs}$', 
+    #         r'$\theta_0$',
+    #         r'$n_0$', 
+    #         r'$\xi_N$', 
+    #         r'$\epsilon_e$', 
+    #         r'$\epsilon_B$', 
+    #         r'$p$'], 
+    #     figsize=(7,4)
+    # )
     
-    plt.tight_layout()
+    # plt.tight_layout()
     fig = corner.corner(
         mc_data, 
         var_names = [
@@ -136,5 +136,5 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
     
     fig.set_size_inches(8, 8)
     print(f"Saving cornerplot as {args.out_file}.pdf")
-    corner.corner.savefig(f'{args.out_file}.pdf')
+    fig.savefig(f'{args.out_file}.pdf')
     plt.show()
