@@ -49,7 +49,15 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
         
     t[:, :] =  np.geomspace(ts, te, num=nt)[:, None]
 
-    @theano.compile.ops.as_op(itypes=[tensor.dscalar, tensor.dscalar, tensor.dscalar, tensor.dscalar, tensor.dscalar, tensor.dscalar, tensor.dscalar, tensor.dscalar], otypes=[tensor.dvector])
+    @theano.compile.ops.as_op(itypes=[
+        tensor.dscalar, 
+        tensor.dscalar, 
+        tensor.dscalar, 
+        tensor.dscalar, 
+        tensor.dscalar, 
+        tensor.dscalar, 
+        tensor.dscalar, 
+        tensor.dscalar], otypes=[tensor.dvector])
     def fluxDensity(e_iso, theta_obs, theta_core, n_0, xi_n, epsilon_e, epsilon_b, p):
         """
         Because pymc3 only works with Tensor variables, we must
