@@ -104,7 +104,7 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
     
     print('Sampling from distribution...')
     with afterglow_fit:
-        mc_data = pm.sample(chains = args.chains)
+        mc_data = pm.sample(chains = args.chains, return_inferencedata=False)
     
     # az.plot_trace(
     #     mc_data, 
