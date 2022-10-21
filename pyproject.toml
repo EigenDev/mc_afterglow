@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mc_afterglow"
+description = "Perform Monte Carlo GRB afterglow fitting using afterglowpy"
+keywords    = ["monte carlo", "astronomy"]
+license     = {text = "BSD 3-Clause License"}
+authors     = [
+    {email = "md4469@nyu.edu"},
+    {name  = "Marcus DuPont"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3"
+]
+dependencies = [
+    "pymc",
+    "afterglowpy",
+    "matplotlib",
+    "pandas",
+    "astropy",
+    "theano",
+    "corner"
+]
+dynamic = ["version", "readme"]
+
+[project.scripts]
+mc_afterglow = "mc_afterglow.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {file = "mc_afterglow/VERSION"}
+readme  = {file = ["README.md"]}
+
+[tool.setuptools]
+packages = ["mc_afterglow"]
