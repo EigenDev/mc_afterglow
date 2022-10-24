@@ -1,7 +1,8 @@
 import astropy.constants as const 
 import astropy.units as units 
+import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-
+from typing import Union
 def band2freq(band: str) -> units.quantity.Quantity:
     if band == 'U':
         res = const.c.cgs / 3600 /units.Angstron.cgs
@@ -48,3 +49,8 @@ def calc_luminosity_distance(z: float) -> float:
         # return z * (const.c.cgs / cosmo.H(0).cgs) 
     else:
         return 1e28 * units.cm
+    
+def find_nearest(arr: np.ndarray, val: float) -> Union[int, float]:
+    arr = np.asarray(arr)
+    idx = np.argmin(np.abs(arr - val))
+    return idx, arr[idx]
