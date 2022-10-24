@@ -102,7 +102,7 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
         fnu_true = pm.Deterministic('fnu_true', fnu)
 
         # log_likelihood
-        logl = pm.Normal('logl', mu=fnu_true, sigma=1, observed=observation_data)
+        logl = pm.Normal('logl', mu=fnu_true, sigma=args.sigma, observed=observation_data)
         
         print('Sampling from distribution...')
         step  = pm.Metropolis()

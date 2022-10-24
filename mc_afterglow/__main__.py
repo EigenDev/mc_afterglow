@@ -32,7 +32,7 @@ def main():
     parser.add_argument('--draws', help='number of draws to take for each free parameter', default=1000, type=int)
     parser.add_argument('--out_file', default='cornerplot', help='name of output file for corner plot', type=str)
     parser.add_argument('--spread', default=False, help='flag to activate spreading dynamics of blast waves', action='store_true')
-    parser.add_argument('--sigma', help='spread in log_likelihood', default=0.2, type=float)
+    parser.add_argument('--sigma', help='spread in log_likelihood', default=1.0, type=float)
     args = parser.parse_args()
     
     # Temporarily add script to python path for easy import
