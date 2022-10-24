@@ -82,11 +82,10 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
             Z['counterjet'] = True
             
         res = afterglowpy.fluxDensity(t, nu, **Z)
-        print(res)
         return res
     
     print("Generating pymc3 model...")
-    with pm.Model() as afterglow_fit:
+    with pm.Model() as afterglow_model:
         # priors
         e_iso      = pm.Uniform(r'$E_{\rm iso}$', lower=1e51, upper=1e54)
         theta_obs  = pm.Uniform(r'$\theta_{\rm obs}$', lower=0.0, upper=math.pi * 0.5)
@@ -104,11 +103,16 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
         # log_likelihood
         logl = pm.Normal('logl', mu=fnu_true, sigma=args.sigma, observed=observation_data)
         
+    gv = pm.model_graph.model_to_graphviz(afterglow_model)
+    gv.format = 'pdf'
+    gv.render(filename='afterglow_mdeol_graph')
+    
+    with afterglow_model:
         print('Sampling from distribution...')
         step  = pm.Metropolis()
         trace = pm.sample(draws=args.draws, step=step, chains = args.chains, return_inferencedata=False)
-    
-    az.plot_trace(
+        
+    axes = az.plot_trace(
         trace, 
         var_names = [
             r'$E_{\rm iso}$', 
@@ -121,6 +125,8 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
             r'$p$'], 
         figsize=(7,4)
     )
+    fig = axes.ravel()[0].figure
+    fig.savefig("tracer_plot.pdf")
     
     # plt.tight_layout()
     # fig = corner.corner(
