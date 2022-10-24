@@ -1,10 +1,12 @@
 import argparse 
 import ast 
 import importlib 
+import astropy.units as units
 import sys 
 import os 
 from pathlib import Path
 from .run import run_analysis 
+from .helpers import band2freq, find_nearest
 
 def main():
     parser = argparse.ArgumentParser("Data file to read from")
@@ -13,8 +15,6 @@ def main():
     event_type.add_argument('--jet', action='store_true', default=True)
     parser.add_argument('script', help='script that contains the user-defined class instance that reads specific file')
     parser.add_argument('data_file', help="data file to read")
-    parser.add_argument('--skip_rows', type=int, help='number of rows to skip in obs file', default=0)
-    parser.add_argument('--sep', help='the delimiter in the obs files', type=str, default='\t')
     parser.add_argument('--nus', type=float, help='list of frequencies', nargs='+', default=[])
     parser.add_argument('--tdomain', help='time domain for afterglow in days', default=[1e-2,1e3], type=float, nargs='+')
     parser.add_argument('--fname', help='name of plot file to be saved', default='some_lc', type=str)
@@ -29,8 +29,10 @@ def main():
     parser.add_argument('--scale_factors', default=None, type=float, help='factors to scale y-axis by', nargs='+')
     parser.add_argument('--sim_legend', default=True, help='unset if don\'t want legend for sim data', action=argparse.BooleanOptionalAction)
     parser.add_argument('--chains', default=8, help='number of Markov chains to sample from', type=int)
+    parser.add_argument('--draws', help='number of draws to take for each free parameter', default=1000, type=int)
     parser.add_argument('--out_file', default='cornerplot', help='name of output file for corner plot', type=str)
     parser.add_argument('--spread', default=False, help='flag to activate spreading dynamics of blast waves', action='store_true')
+    parser.add_argument('--sigma', help='spread in log_likelihood', default=0.2, type=float)
     args = parser.parse_args()
     
     # Temporarily add script to python path for easy import
@@ -52,7 +54,13 @@ def main():
     reader_class          = getattr(importlib.import_module(f'{base_script}'), f'{user_class}')
     data_object, tdomain  = reader_class.read_file(args)
     for grb in args.grbs:
-        data = data_object[grb][args.band_passes[0]]['flux']
+        try:
+            data = data_object[grb][args.band_passes[0]]['flux']
+        except KeyError:
+            _, freq_key = find_nearest([*data_object[grb]], band2freq(args.band_passes[0]).value)
+            data = data_object[grb][freq_key]['flux']
+            if isinstance(data, units.Quantity):
+                data = data.value
 
     run_analysis(data, args, tdomain)
     
