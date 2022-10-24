@@ -9,27 +9,28 @@ class VanEertenFile(Reader):
     van Eerten et al. (2012)
     link: https://iopscience.iop.org/article/10.1088/0004-637X/749/1/44/pdf
     """
-    def read_file(args) -> dict, tuple:
-        data = np.loadtxt(args.obs_file, delimiter=args.sep)
+    def read_file(args) -> dict:
+        data = np.loadtxt(args.data_file, delimiter=',')
         data_dict = {}
+        data_dict['990510'] = {}
         # Build dictionary
         for val in data[:,1]:
-            if val not in data_dict:
-                data_dict[val] = {}
-                data_dict[val]['time'] = []
-                data_dict[val]['flux']  = []
-                data_dict[val]['dflux'] = []
+            if val not in data_dict['990510']:
+                data_dict['990510'][val] = {}
+                data_dict['990510'][val]['time'] = []
+                data_dict['990510'][val]['flux']  = []
+                data_dict['990510'][val]['dflux'] = []
         
         for row in data:
             freq = row[1]
-            data_dict[freq]['time'] += [row[0]]
-            data_dict[freq]['flux']  += [row[2]]
-            data_dict[freq]['dflux'] += [row[3]]
+            data_dict['990510'][freq]['time'] += [row[0]]
+            data_dict['990510'][freq]['flux']  += [row[2]]
+            data_dict['990510'][freq]['dflux'] += [row[3]]
         
-        for key in data_dict.keys():
-            data_dict[key]['time']  = np.asarray(data_dict[key]['time']) * units.s
-            data_dict[key]['flux']  = np.asarray(data_dict[key]['flux'])  * units.mJy
-            data_dict[key]['dflux'] = np.asarray(data_dict[key]['dflux']) * units.mJy
+        for key in data_dict['990510'].keys():
+            data_dict['990510'][key]['time']  = np.asarray(data_dict['990510'][key]['time'])  * units.s
+            data_dict['990510'][key]['flux']  = np.asarray(data_dict['990510'][key]['flux'])  * units.mJy
+            data_dict['990510'][key]['dflux'] = np.asarray(data_dict['990510'][key]['dflux']) * units.mJy
         
         # return the 
         return data_dict, [1e-1, 15]
