@@ -16,9 +16,7 @@ plt.rcParams.update({
     'font.family': 'Times New Roman',
 })
 
-SIGMA = 0.01
 def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = None):
-    offset = 0.0
     Z = {}
     Z['z']        = args.z
     Z['specType'] = 0
@@ -28,8 +26,6 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
     if args.ring:
         Z['jetType'] = afterglowpy.jet.Cone
     
-    # tdomain  = np.asanyarray(args.tdomain)
-    # if given_tdomain != None:
     tdomain  = np.asanyarray(given_tdomain)
     ts, te   = tdomain * afterglowpy.day2sec
     nt       = observation_data.size
@@ -40,14 +36,9 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
     for f in args.nus:
         if f not in nus:
             nus += [f]
-            
-    nf = len(nus)
-    t  = np.zeros(shape=(nt, nf))
-    nu = np.empty_like(t)
-    for idx, freq in enumerate(nus):
-        nu[:, idx] = freq
-        
-    t[:, :] =  np.geomspace(ts, te, num=nt)[:, None]
+    
+    t     = np.geomspace(ts, te, nt)
+    nu    = np.ones_like(t) * nus[0]
 
     @theano.compile.ops.as_op(itypes=[
         tensor.dscalar, 
@@ -89,18 +80,21 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
         else:
             Z['thetaCore']  = np.pi * 0.5 - float(theta_core)
             Z['counterjet'] = True
-        return afterglowpy.fluxDensity(t, nu, **Z)[:, 0]
+            
+        res = afterglowpy.fluxDensity(t, nu, **Z)
+        print(res)
+        return res
     
     print("Generating pymc3 model...")
     with pm.Model() as afterglow_fit:
         # priors
         e_iso      = pm.Uniform(r'$E_{\rm iso}$', lower=1e51, upper=1e54)
         theta_obs  = pm.Uniform(r'$\theta_{\rm obs}$', lower=0.0, upper=math.pi * 0.5)
-        theta_core = pm.Uniform(r'$\theta_0$', lower=1e-3, upper=math.pi * 0.5)
-        n_0        = pm.Uniform(r'$n_0$', lower=1.0, upper=10.0)
+        theta_core = pm.Uniform(r'$\theta_0$', lower=0.01, upper=math.pi * 0.5)
+        n_0        = pm.Uniform(r'$n_0$', lower=1.0, upper=2.0)
         xi_n       = pm.Uniform(r'$\xi_N$', lower=0.01, upper=1.0)
-        epsilon_e  = pm.Uniform(r'$\epsilon_e$', lower=1e-6, upper=1.0)
-        epsilon_b  = pm.Uniform(r'$\epsilon_B$', lower=1e-6, upper=1.0)
+        epsilon_e  = pm.Uniform(r'$\epsilon_e$', lower=1e-2, upper=1.0)
+        epsilon_b  = pm.Uniform(r'$\epsilon_B$', lower=1e-2, upper=1.0)
         p          = pm.Uniform(r'$p$', lower=2.01, upper=2.5)
         
         # The deterministic
@@ -108,41 +102,41 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
         fnu_true = pm.Deterministic('fnu_true', fnu)
 
         # log_likelihood
-        logl = pm.Normal('logl', mu=fnu_true, sigma=SIGMA, observed=observation_data)
+        logl = pm.Normal('logl', mu=fnu_true, sigma=1, observed=observation_data)
+        
+        print('Sampling from distribution...')
+        step  = pm.Metropolis()
+        trace = pm.sample(draws=args.draws, step=step, chains = args.chains, return_inferencedata=False)
     
-    print('Sampling from distribution...')
-    with afterglow_fit:
-        mc_data = pm.sample(chains = args.chains, return_inferencedata=False)
-    
-    # az.plot_trace(
-    #     mc_data, 
-    #     var_names = [
-    #         r'$E_{\rm iso}$', 
-    #         r'$\theta_{\rm obs}$', 
-    #         r'$\theta_0$',
-    #         r'$n_0$', 
-    #         r'$\xi_N$', 
-    #         r'$\epsilon_e$', 
-    #         r'$\epsilon_B$', 
-    #         r'$p$'], 
-    #     figsize=(7,4)
-    # )
-    
-    # plt.tight_layout()
-    fig = corner.corner(
-        mc_data, 
+    az.plot_trace(
+        trace, 
         var_names = [
             r'$E_{\rm iso}$', 
             r'$\theta_{\rm obs}$', 
-            r'$\theta_0$', 
+            r'$\theta_0$',
             r'$n_0$', 
             r'$\xi_N$', 
-            r'$\epsilon_e$',
-            r'$\epsilon_B$',
-            r'$p$']
+            r'$\epsilon_e$', 
+            r'$\epsilon_B$', 
+            r'$p$'], 
+        figsize=(7,4)
     )
     
-    fig.set_size_inches(8, 8)
-    print(f"Saving cornerplot as {args.out_file}.pdf")
-    fig.savefig(f'{args.out_file}.pdf')
+    # plt.tight_layout()
+    # fig = corner.corner(
+    #     trace, 
+    #     var_names = [
+    #         r'$E_{\rm iso}$', 
+    #         r'$\theta_{\rm obs}$', 
+    #         r'$\theta_0$', 
+    #         r'$n_0$', 
+    #         r'$\xi_N$', 
+    #         r'$\epsilon_e$',
+    #         r'$\epsilon_B$',
+    #         r'$p$']
+    # )
+    
+    # fig.set_size_inches(8, 8)
+    # print(f"Saving cornerplot as {args.out_file}.pdf")
+    # fig.savefig(f'{args.out_file}.pdf')
     plt.show()
