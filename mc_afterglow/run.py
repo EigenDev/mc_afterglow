@@ -112,37 +112,37 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
         step  = pm.Metropolis()
         trace = pm.sample(draws=args.draws, step=step, chains = args.chains, return_inferencedata=False)
         
-    axes = az.plot_trace(
-        trace, 
-        var_names = [
-            r'$E_{\rm iso}$', 
-            r'$\theta_{\rm obs}$', 
-            r'$\theta_0$',
-            r'$n_0$', 
-            r'$\xi_N$', 
-            r'$\epsilon_e$', 
-            r'$\epsilon_B$', 
-            r'$p$'], 
-        figsize=(7,4)
-    )
-    fig = axes.ravel()[0].figure
-    fig.savefig("tracer_plot.pdf")
-    
-    # plt.tight_layout()
-    # fig = corner.corner(
+    # axes = az.plot_trace(
     #     trace, 
     #     var_names = [
     #         r'$E_{\rm iso}$', 
     #         r'$\theta_{\rm obs}$', 
-    #         r'$\theta_0$', 
+    #         r'$\theta_0$',
     #         r'$n_0$', 
     #         r'$\xi_N$', 
-    #         r'$\epsilon_e$',
-    #         r'$\epsilon_B$',
-    #         r'$p$']
+    #         r'$\epsilon_e$', 
+    #         r'$\epsilon_B$', 
+    #         r'$p$'], 
+    #     figsize=(7,4)
     # )
+    # fig = axes.ravel()[0].figure
+    # fig.savefig("tracer_plot.pdf")
     
-    # fig.set_size_inches(8, 8)
-    # print(f"Saving cornerplot as {args.out_file}.pdf")
-    # fig.savefig(f'{args.out_file}.pdf')
+    # plt.tight_layout()
+    fig = corner.corner(
+        trace, 
+        var_names = [
+            r'$E_{\rm iso}$', 
+            r'$\theta_{\rm obs}$', 
+            r'$\theta_0$', 
+            r'$n_0$', 
+            r'$\xi_N$', 
+            r'$\epsilon_e$',
+            r'$\epsilon_B$',
+            r'$p$']
+    )
+    
+    fig.set_size_inches(8, 8)
+    print(f"Saving cornerplot as {args.out_file}.pdf")
+    fig.savefig(f'{args.out_file}.pdf')
     plt.show()
