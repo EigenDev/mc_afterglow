@@ -9,6 +9,7 @@ import astropy.constants as const
 import corner
 import theano 
 import theano.tensor as tensor
+import multiprocessing
 from .helpers import band2freq, calc_luminosity_distance
 
 plt.rcParams.update({
@@ -16,6 +17,7 @@ plt.rcParams.update({
     'font.family': 'Times New Roman',
 })
 
+cpu_count = multiprocessing.cpu_count()
 def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = None):
     Z = {}
     Z['z']        = args.z
@@ -110,7 +112,7 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
     with afterglow_model:
         print('Sampling from distribution...')
         step  = pm.Metropolis()
-        trace = pm.sample(draws=args.draws, step=step, chains = args.chains, return_inferencedata=False)
+        trace = pm.sample(draws=args.draws, step=step, chains = args.chains, return_inferencedata=False, cores=cpu_count)
         
     # axes = az.plot_trace(
     #     trace, 
