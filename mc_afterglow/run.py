@@ -105,7 +105,7 @@ def run_analysis(observation_data: np.ndarray, args, given_tdomain: np.array = N
         
     gv = pm.model_graph.model_to_graphviz(afterglow_model)
     gv.format = 'pdf'
-    gv.render(filename='afterglow_mdeol_graph')
+    gv.render(filename='afterglow_model_graph')
     
     with afterglow_model:
         print('Sampling from distribution...')
